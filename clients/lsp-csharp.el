@@ -334,6 +334,14 @@ using the `textDocument/references' request."
       (lsp-show-xrefs (lsp--locations-to-xref-items locations-found) nil t)
     (message "No references found")))
 
+(lsp-defun lsp-csharp-goto-definition ()
+  "Go to the definition of symbol at the current point using `v2/gotodefinition' endpoint instead of `textDocument/defintion'."
+  (let* ((goto-definition-request (append (lsp--text-document-position-params) (list :WantMetadata t)))
+         (definitions-response (lsp-request "o#/v2/gotodefintion" goto-definition-request))
+         ((&omnisharp:DefinitionResponse :location :metadata-source? :source-generated-file-info?) definitions-response))
+    (message "Test")
+    ))
+
 (lsp-register-client
  (make-lsp-client :new-connection
                   (lsp-stdio-connection
@@ -348,7 +356,8 @@ using the `textDocument/references' request."
                   :activation-fn (lsp-activate-on "csharp")
                   :server-id 'omnisharp
                   :priority -1
-                  :action-handlers (ht ("omnisharp/client/findReferences" 'lsp-csharp--action-client-find-references))
+                  :action-handlers (ht ("omnisharp/client/findReferences" 'lsp-csharp--action-client-find-references)
+                                       ("o#/v2/gotodefinition"))
                   :notification-handlers (ht ("o#/projectadded" 'ignore)
                                              ("o#/projectchanged" 'ignore)
                                              ("o#/projectremoved" 'ignore)
